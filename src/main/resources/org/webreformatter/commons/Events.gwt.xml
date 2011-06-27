@@ -1,3 +1,5 @@
 <module>
-    <source path="events" />
+    <source path="events">
+        <exclude name="**/server/**" />
+    </source>
 </module>
