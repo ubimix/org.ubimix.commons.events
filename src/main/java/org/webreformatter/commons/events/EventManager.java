@@ -132,7 +132,8 @@ public class EventManager implements IEventManager {
      * @see org.webreformatter.commons.events.IEventManager#fireEvent(java.lang.Object)
      */
     public <E> void fireEvent(E event) {
-        fireEvent(event, null);
+        IEventListener<E> callback = null;
+        fireEvent(event, callback);
     }
 
     /**

@@ -16,37 +16,6 @@ import org.webreformatter.commons.events.IEventManager;
  */
 public class HasEvents<E> implements IHasEvents<E> {
 
-    /**
-     * Creates and returns a new instance of this type casted to the result
-     * type.
-     * 
-     * @param <E>
-     * @param <R>
-     * @param type
-     * @return a new instance of this casted to the result type
-     */
-    public static <E, R extends E> IHasEvents<R> newInstance(Class<E> type) {
-        return newInstance(null, type);
-    }
-
-    /**
-     * Creates and returns a new instance of this type casted to the result
-     * type.
-     * 
-     * @param <E>
-     * @param <R>
-     * @param manager the event manager used to deliver events
-     * @param type the type of events
-     * @return a new instance of this casted to the result type
-     */
-    @SuppressWarnings("unchecked")
-    public static <E, R extends E> IHasEvents<R> newInstance(
-        IEventManager manager,
-        Class<E> type) {
-        HasEvents<E> result = new HasEvents<E>(type, manager);
-        return (IHasEvents<R>) result;
-    }
-
     private IEventManager fEventManager;
 
     private Class<E> fType;

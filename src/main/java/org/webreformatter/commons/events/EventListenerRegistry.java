@@ -13,6 +13,34 @@ import java.util.Map;
  */
 public class EventListenerRegistry implements IEventListenerRegistry {
 
+    /**
+     * Instances of this type are used to notify when listeners are added to or
+     * removed from the listener registry.
+     * 
+     * @author kotelnikov
+     */
+    public interface IEventListenerInterceptor {
+
+        /**
+         * This method is called when a new listener is added to the registry
+         * 
+         * @param eventType the type of the event
+         * @param listener the added listener
+         */
+        void onAddListener(Class<?> eventType, IEventListener<?> listener);
+
+        /**
+         * This method is called when a listener removed from the registry.
+         * 
+         * @param eventType the type of the event
+         * @param listener the removed listener
+         */
+        void onRemoveListener(Class<?> eventType, IEventListener<?> listener);
+
+    }
+
+    private List<IEventListenerInterceptor> fInterceptors;
+
     private Map<Class<?>, List<IEventListener<?>>> fMap = new HashMap<Class<?>, List<IEventListener<?>>>();
 
     /**
@@ -36,12 +64,28 @@ public class EventListenerRegistry implements IEventListenerRegistry {
         }
         if (list.add(listener)) {
             fMap.put(eventType, list);
+            if (fInterceptors != null) {
+                for (IEventListenerInterceptor interceptor : fInterceptors) {
+                    interceptor.onAddListener(eventType, listener);
+                }
+            }
         }
         return new IEventListenerRegistration() {
             public boolean unregister() {
                 return removeListener(eventType, listener);
             }
         };
+    }
+
+    /**
+     * @param interceptor
+     */
+    public synchronized void addListenerInterceptor(
+        IEventListenerInterceptor interceptor) {
+        if (fInterceptors == null) {
+            fInterceptors = new ArrayList<IEventListenerInterceptor>();
+        }
+        fInterceptors.add(interceptor);
     }
 
     /**
@@ -71,9 +115,24 @@ public class EventListenerRegistry implements IEventListenerRegistry {
                 } else {
                     fMap.put(eventType, list);
                 }
+                if (fInterceptors != null) {
+                    for (IEventListenerInterceptor interceptor : fInterceptors) {
+                        interceptor.onRemoveListener(eventType, listener);
+                    }
+                }
             }
         }
         return result;
+    }
+
+    /**
+     * @param interceptor
+     */
+    public synchronized void removeListenerInterceptor(
+        IEventListenerInterceptor interceptor) {
+        if (fInterceptors != null) {
+            fInterceptors.remove(interceptor);
+        }
     }
 
 }

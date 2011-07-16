@@ -11,6 +11,7 @@ public class AllTests {
         TestSuite suite = new TestSuite(
             "Test for org.webreformatter.commons.events");
         // $JUnit-BEGIN$
+        suite.addTestSuite(EventListenerInterceptorTest.class);
         suite.addTestSuite(EventManagerTest.class);
         suite.addTestSuite(EventObservationTest.class);
         suite.addTestSuite(CallEventTest.class);
