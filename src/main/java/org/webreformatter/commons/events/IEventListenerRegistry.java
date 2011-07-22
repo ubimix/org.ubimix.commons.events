@@ -40,6 +40,16 @@ public interface IEventListenerRegistry {
         IEventListener<? super E> listener);
 
     /**
+     * This method adds "interceptors" which are notified every time when a new
+     * listener is added to or removed from this registry. Interceptors could be
+     * considered as "listeners of listeners".
+     * 
+     * @param interceptor the interceptor to add
+     * @see #removeListenerInterceptor(IEventListenerInterceptor)
+     */
+    void addListenerInterceptor(IEventListenerInterceptor interceptor);
+
+    /**
      * Returns a list of listeners for the specified event type; the returned
      * value can be <code>null</code>.
      * 
@@ -62,5 +72,13 @@ public interface IEventListenerRegistry {
     <E> boolean removeListener(
         Class<E> eventType,
         IEventListener<? super E> listener);
+
+    /**
+     * This method removes "interceptors" from this registry.
+     * 
+     * @param interceptor the interceptor to remove
+     * @see #addListenerInterceptor(IEventListenerInterceptor)
+     */
+    void removeListenerInterceptor(IEventListenerInterceptor interceptor);
 
 }

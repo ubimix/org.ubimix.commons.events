@@ -72,9 +72,16 @@ public class EventManager implements IEventManager {
      *      org.webreformatter.commons.events.IEventListener)
      */
     public <E> IEventListenerRegistration addListener(
-        final Class<E> eventType,
-        final IEventListener<? super E> listener) {
+        Class<E> eventType,
+        IEventListener<? super E> listener) {
         return fListenerRegistry.addListener(eventType, listener);
+    }
+
+    /**
+     * @see org.webreformatter.commons.events.IEventListenerRegistry#addListenerInterceptor(org.webreformatter.commons.events.IEventListenerInterceptor)
+     */
+    public void addListenerInterceptor(IEventListenerInterceptor interceptor) {
+        fListenerRegistry.addListenerInterceptor(interceptor);
     }
 
     protected EventNode dequeueEvent() {
@@ -213,6 +220,13 @@ public class EventManager implements IEventManager {
         Class<E> eventType,
         IEventListener<? super E> listener) {
         return fListenerRegistry.removeListener(eventType, listener);
+    }
+
+    /**
+     * @see org.webreformatter.commons.events.IEventListenerRegistry#removeListenerInterceptor(org.webreformatter.commons.events.IEventListenerInterceptor)
+     */
+    public void removeListenerInterceptor(IEventListenerInterceptor interceptor) {
+        fListenerRegistry.removeListenerInterceptor(interceptor);
     }
 
     public void setTopEventManager(IEventManager eventManager) {

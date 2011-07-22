@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import org.webreformatter.commons.events.EventListenerRegistry;
 import org.webreformatter.commons.events.EventManager;
 import org.webreformatter.commons.events.IEventListener;
+import org.webreformatter.commons.events.IEventListenerInterceptor;
 import org.webreformatter.commons.events.IEventListenerRegistration;
 import org.webreformatter.commons.events.IEventListenerRegistry;
 import org.webreformatter.commons.events.IEventManager;
@@ -48,6 +49,13 @@ public class AsyncEventManager implements IEventManager {
         Class<E> eventType,
         IEventListener<? super E> listener) {
         return fListenerRegistry.addListener(eventType, listener);
+    }
+
+    /**
+     * @see org.webreformatter.commons.events.IEventListenerRegistry#addListenerInterceptor(org.webreformatter.commons.events.IEventListenerInterceptor)
+     */
+    public void addListenerInterceptor(IEventListenerInterceptor interceptor) {
+        fListenerRegistry.addListenerInterceptor(interceptor);
     }
 
     /**
@@ -144,6 +152,13 @@ public class AsyncEventManager implements IEventManager {
         Class<E> eventType,
         IEventListener<? super E> listener) {
         return fListenerRegistry.removeListener(eventType, listener);
+    }
+
+    /**
+     * @see org.webreformatter.commons.events.IEventListenerRegistry#removeListenerInterceptor(org.webreformatter.commons.events.IEventListenerInterceptor)
+     */
+    public void removeListenerInterceptor(IEventListenerInterceptor interceptor) {
+        fListenerRegistry.removeListenerInterceptor(interceptor);
     }
 
     /**
