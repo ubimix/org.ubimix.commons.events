@@ -62,18 +62,12 @@ public class AsyncEventManager implements IEventManager {
      * @see org.webreformatter.commons.events.IEventManager#fireEvent(java.lang.Object)
      */
     public <E> void fireEvent(final E event) {
-        IEventManager manager = getLocalEventManager(false);
-        if (manager != null) {
-            // We are already in a working thread
-            manager.fireEvent(event);
-        } else {
-            fExecutor.execute(new Runnable() {
-                public void run() {
-                    IEventManager manager = getLocalEventManager(true);
-                    manager.fireEvent(event);
-                }
-            });
-        }
+        fExecutor.execute(new Runnable() {
+            public void run() {
+                IEventManager manager = getLocalEventManager(true);
+                manager.fireEvent(event);
+            }
+        });
     }
 
     /**
@@ -83,18 +77,12 @@ public class AsyncEventManager implements IEventManager {
     public <E, L extends IEventListener<? super E>> void fireEvent(
         final E event,
         final L listener) {
-        IEventManager manager = getLocalEventManager(false);
-        if (manager != null) {
-            // We are already in a working thread
-            manager.fireEvent(event, listener);
-        } else {
-            fExecutor.execute(new Runnable() {
-                public void run() {
-                    IEventManager manager = getLocalEventManager(true);
-                    manager.fireEvent(event, listener);
-                }
-            });
-        }
+        fExecutor.execute(new Runnable() {
+            public void run() {
+                IEventManager manager = getLocalEventManager(true);
+                manager.fireEvent(event, listener);
+            }
+        });
     }
 
     /**
