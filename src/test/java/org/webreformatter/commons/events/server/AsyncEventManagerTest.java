@@ -80,7 +80,7 @@ public class AsyncEventManagerTest extends TestCase {
                 }
             });
         Executors.newSingleThreadExecutor().execute(task);
-        Integer result = task.get(1, TimeUnit.SECONDS);
+        Integer result = task.get(10, TimeUnit.SECONDS);
         assertNotNull(result);
         assertEquals(count, result.intValue());
     }
