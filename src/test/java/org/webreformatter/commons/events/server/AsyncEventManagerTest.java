@@ -3,6 +3,10 @@
  */
 package org.webreformatter.commons.events.server;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -12,6 +16,9 @@ import java.util.concurrent.TimeUnit;
 import junit.framework.TestCase;
 
 import org.webreformatter.commons.events.IEventListener;
+import org.webreformatter.commons.events.IEventManager;
+import org.webreformatter.commons.events.calls.CallEvent;
+import org.webreformatter.commons.events.calls.CallListener;
 
 /**
  * @author kotelnikov
@@ -23,6 +30,56 @@ public class AsyncEventManagerTest extends TestCase {
      */
     public AsyncEventManagerTest(String name) {
         super(name);
+    }
+
+    private void doTestCallBarrier(Set<String> people) {
+        class MyEvent extends CallEvent<String, String> {
+            public MyEvent(String request) {
+                super(request);
+            }
+        }
+        IEventManager manager = new AsyncEventManager();
+        CallBarrier barrier = new CallBarrier(manager);
+        final Set<String> resultGreetingSet = Collections
+            .synchronizedSet(new HashSet<String>());
+        final Set<String> resultPeopleSet = Collections
+            .synchronizedSet(new HashSet<String>());
+        manager.addListener(MyEvent.class, new CallListener<MyEvent>() {
+            @Override
+            protected void handleRequest(MyEvent event) {
+                String result = "Hello, " + event.getRequest() + "!";
+                event.setResponse(result);
+            }
+        });
+        for (String person : people) {
+            barrier.fireEvent(new MyEvent(person), new CallListener<MyEvent>() {
+                @Override
+                protected void handleResponse(MyEvent event) {
+                    resultPeopleSet.add(event.getRequest());
+                    resultGreetingSet.add(event.getResponse());
+                };
+            });
+        }
+        barrier.await();
+        assertEquals(people.size(), resultPeopleSet.size());
+        for (String person : people) {
+            assertTrue(resultPeopleSet.contains(person));
+        }
+
+        Set<String> greetingControl = new HashSet<String>();
+        for (String person : people) {
+            String greeting = "Hello, " + person + "!";
+            greetingControl.add(greeting);
+        }
+        assertEquals(greetingControl, resultGreetingSet);
+    }
+
+    private void doTestCallBarrier(String... people) {
+        Set<String> set = new LinkedHashSet<String>();
+        for (String person : people) {
+            set.add(person);
+        }
+        doTestCallBarrier(set);
     }
 
     public void test() throws Exception {
@@ -83,5 +140,18 @@ public class AsyncEventManagerTest extends TestCase {
         Integer result = task.get(10, TimeUnit.SECONDS);
         assertNotNull(result);
         assertEquals(count, result.intValue());
+    }
+
+    public void testCallBarrier() {
+        doTestCallBarrier();
+        doTestCallBarrier("John");
+        doTestCallBarrier("John", "Bill", "Mike");
+        Set<String> set = new LinkedHashSet<String>();
+        int count = 10000;
+        for (int i = 0; i < count; i++) {
+            String name = "Abc " + i;
+            set.add(name);
+        }
+        doTestCallBarrier(set);
     }
 }
