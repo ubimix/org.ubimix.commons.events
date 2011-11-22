@@ -47,7 +47,6 @@ import org.webreformatter.commons.events.calls.CallEvent;
  * @author kotelnikov
  */
 public class CallBarrier implements IEventListener<CallEvent<?, ?>> {
-    private IEventManager fManager;
 
     private Object fMutex = new Object();
 
@@ -56,8 +55,28 @@ public class CallBarrier implements IEventListener<CallEvent<?, ?>> {
     /**
      * 
      */
-    public CallBarrier(IEventManager manager) {
-        fManager = manager;
+    public CallBarrier() {
+    }
+
+    public <E, L extends IEventListener<? super E>> IEventListener<E> add() {
+        return add(null);
+    }
+
+    public <E, L extends IEventListener<? super E>> IEventListener<E> add(
+        final L listener) {
+        incCounter();
+        return new IEventListener<E>() {
+            public void handleEvent(E event) {
+                try {
+                    if (listener != null) {
+                        listener.handleEvent(event);
+                    }
+                } finally {
+                    CallEvent<?, ?> e = (CallEvent<?, ?>) event;
+                    CallBarrier.this.handleEvent(e);
+                }
+            }
+        };
     }
 
     public void await() {
@@ -81,25 +100,17 @@ public class CallBarrier implements IEventListener<CallEvent<?, ?>> {
         }
     }
 
-    public <E extends CallEvent<?, ?>> void fireEvent(E event) {
-        incCounter();
-        fManager.fireEvent(event, this);
+    public <E extends CallEvent<?, ?>> void fireEvent(
+        IEventManager manager,
+        E event) {
+        manager.fireEvent(event, add(null));
     }
 
     public <E, L extends IEventListener<? super E>> void fireEvent(
+        IEventManager manager,
         E event,
         final L listener) {
-        incCounter();
-        fManager.fireEvent(event, new IEventListener<E>() {
-            public void handleEvent(E event) {
-                try {
-                    listener.handleEvent(event);
-                } finally {
-                    CallEvent<?, ?> e = (CallEvent<?, ?>) event;
-                    CallBarrier.this.handleEvent(e);
-                }
-            }
-        });
+        manager.fireEvent(event, add(listener));
     }
 
     protected long getWaitTimeout() {

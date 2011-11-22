@@ -39,7 +39,6 @@ public class AsyncEventManagerTest extends TestCase {
             }
         }
         IEventManager manager = new AsyncEventManager();
-        CallBarrier barrier = new CallBarrier(manager);
         final Set<String> resultGreetingSet = Collections
             .synchronizedSet(new HashSet<String>());
         final Set<String> resultPeopleSet = Collections
@@ -51,14 +50,18 @@ public class AsyncEventManagerTest extends TestCase {
                 event.setResponse(result);
             }
         });
+
+        CallBarrier barrier = new CallBarrier();
         for (String person : people) {
-            barrier.fireEvent(new MyEvent(person), new CallListener<MyEvent>() {
-                @Override
-                protected void handleResponse(MyEvent event) {
-                    resultPeopleSet.add(event.getRequest());
-                    resultGreetingSet.add(event.getResponse());
-                };
-            });
+            manager.fireEvent(
+                new MyEvent(person),
+                barrier.add(new CallListener<MyEvent>() {
+                    @Override
+                    protected void handleResponse(MyEvent event) {
+                        resultPeopleSet.add(event.getRequest());
+                        resultGreetingSet.add(event.getResponse());
+                    };
+                }));
         }
         barrier.await();
         assertEquals(people.size(), resultPeopleSet.size());
