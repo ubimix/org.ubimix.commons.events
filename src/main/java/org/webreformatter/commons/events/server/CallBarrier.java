@@ -59,7 +59,9 @@ public class CallBarrier implements IEventListener<CallEvent<?, ?>> {
     }
 
     public <E, L extends IEventListener<? super E>> IEventListener<E> add() {
-        return add(null);
+        // This variable is here to make compilers happy.
+        IEventListener<? super E> listener = null;
+        return add(listener);
     }
 
     public <E, L extends IEventListener<? super E>> IEventListener<E> add(
@@ -103,7 +105,9 @@ public class CallBarrier implements IEventListener<CallEvent<?, ?>> {
     public <E extends CallEvent<?, ?>> void fireEvent(
         IEventManager manager,
         E event) {
-        manager.fireEvent(event, add(null));
+        // This variable is here to make compilers happy.
+        IEventListener<? super E> listener = null;
+        manager.fireEvent(event, add(listener));
     }
 
     public <E, L extends IEventListener<? super E>> void fireEvent(
