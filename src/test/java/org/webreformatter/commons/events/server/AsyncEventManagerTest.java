@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 
+import org.webreformatter.commons.events.EventManager;
 import org.webreformatter.commons.events.IEventListener;
 import org.webreformatter.commons.events.IEventManager;
 import org.webreformatter.commons.events.calls.CallEvent;
@@ -156,5 +157,29 @@ public class AsyncEventManagerTest extends TestCase {
             set.add(name);
         }
         doTestCallBarrier(set);
+    }
+
+    public void testCallBarrier1() {
+        IEventManager manager = new EventManager();
+        class MyEvent extends CallEvent<String, String> {
+            public MyEvent(String request) {
+                super(request);
+            }
+        }
+        manager.addListener(MyEvent.class, new CallListener<MyEvent>() {
+            @Override
+            protected void handleRequest(MyEvent event) {
+                String name = event.getRequest();
+                String response = "Hello " + name + "!";
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException e) {
+                }
+                event.setResponse(response);
+            };
+        });
+        MyEvent event = new MyEvent("Smith");
+        String result = CallBarrier.syncCall(manager, event);
+        assertEquals("Hello Smith!", result);
     }
 }

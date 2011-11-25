@@ -6,6 +6,7 @@ package org.webreformatter.commons.events.server;
 import org.webreformatter.commons.events.IEventListener;
 import org.webreformatter.commons.events.IEventManager;
 import org.webreformatter.commons.events.calls.CallEvent;
+import org.webreformatter.commons.events.calls.CallListener;
 
 /**
  * This handler is used to wait results of multiple asynchronous calls.
@@ -27,7 +28,6 @@ import org.webreformatter.commons.events.calls.CallEvent;
  *              event.setResponse("Hello, " + event.getRequest() + "!");
  *          }
  *      });
- *       CallBarrier handler = new CallBarrier(manager);
  *      final List<String> list = Collections
  *          .synchronizedList(new ArrayList<String>());
  *      CallListener<MyEvent> listener = new CallListener<MyEvent>() {
@@ -37,16 +37,41 @@ import org.webreformatter.commons.events.calls.CallEvent;
  *              list.add(event.getRequest());
  *          };
  *      };
- *      handler.fireEvent(new MyEvent("John"), listener);
- *      handler.fireEvent(new MyEvent("Bill"), listener);
- *      handler.fireEvent(new MyEvent("Mike"), listener);
+ *      CallBarrier handler = new CallBarrier(manager);
+ *      handler.fireEvent(manager, new MyEvent("John"), listener);
+ *      handler.fireEvent(manager, new MyEvent("Bill"), listener);
+ *      handler.fireEvent(manager, new MyEvent("Mike"), listener);
  *      handler.await();
  *      System.out.println("The following people were called: " + list);
  * </pre>
  * 
  * @author kotelnikov
  */
-public class CallBarrier implements IEventListener<CallEvent<?, ?>> {
+public class CallBarrier {
+
+    /**
+     * This method fires the given call event, waits for the response and
+     * returns results of the call.
+     * 
+     * @param manager an {@link IEventManager} instance used to fire the call
+     * @param e a call event to fire
+     * @return the result of the execution of the specified event
+     */
+    @SuppressWarnings("unchecked")
+    public static <A, E extends CallEvent<?, A>> A syncCall(
+        IEventManager manager,
+        E e) {
+        CallBarrier barrier = new CallBarrier();
+        final Object[] result = { null };
+        manager.fireEvent(e, barrier.add(new CallListener<E>() {
+            @Override
+            protected void handleResponse(E event) {
+                result[0] = event.getResponse();
+            }
+        }));
+        barrier.await();
+        return (A) result[0];
+    }
 
     private Object fMutex = new Object();
 
@@ -69,21 +94,27 @@ public class CallBarrier implements IEventListener<CallEvent<?, ?>> {
         incCounter();
         return new IEventListener<E>() {
             public void handleEvent(E event) {
+                CallEvent<?, ?> e = (CallEvent<?, ?>) event;
+                boolean response = e.isResponseStage();
                 try {
                     if (listener != null) {
                         listener.handleEvent(event);
                     }
                 } finally {
-                    CallEvent<?, ?> e = (CallEvent<?, ?>) event;
-                    CallBarrier.this.handleEvent(e);
+                    if (response) {
+                        decCounter();
+                    }
                 }
             }
         };
     }
 
     public void await() {
-        synchronized (fMutex) {
-            while (fRequestCounter > 0) {
+        while (true) {
+            synchronized (fMutex) {
+                if (fRequestCounter == 0) {
+                    break;
+                }
                 try {
                     fMutex.wait(getWaitTimeout());
                 } catch (InterruptedException e) {
@@ -119,12 +150,6 @@ public class CallBarrier implements IEventListener<CallEvent<?, ?>> {
 
     protected long getWaitTimeout() {
         return 100;
-    }
-
-    public void handleEvent(CallEvent<?, ?> event) {
-        if (event != null && event.isResponseStage()) {
-            decCounter();
-        }
     }
 
     private void incCounter() {
