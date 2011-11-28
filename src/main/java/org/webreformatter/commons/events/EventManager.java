@@ -67,6 +67,11 @@ public class EventManager implements IEventManager {
         fListenerRegistry = listenerRegistry;
     }
 
+    public EventManager(IEventManager eventManager) {
+        fListenerRegistry = eventManager;
+        fTopEventManager = eventManager;
+    }
+
     /**
      * @see org.webreformatter.commons.events.IEventListenerRegistry#addListener(java.lang.Class,
      *      org.webreformatter.commons.events.IEventListener)

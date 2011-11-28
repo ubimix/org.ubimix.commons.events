@@ -26,6 +26,8 @@ public class AsyncEventManager implements IEventManager {
 
     private IEventListenerRegistry fListenerRegistry;
 
+    private IEventManager fTopEventManager = this;
+
     public AsyncEventManager() {
         this(Executors.newCachedThreadPool(), new EventListenerRegistry());
     }
@@ -39,6 +41,16 @@ public class AsyncEventManager implements IEventManager {
         IEventListenerRegistry listenerRegistry) {
         setExecutor(executor);
         setListenerRegistry(listenerRegistry);
+    }
+
+    /**
+     * @param executor
+     * @param listenerRegistry
+     */
+    public AsyncEventManager(Executor executor, IEventManager topEventManager) {
+        setExecutor(executor);
+        setListenerRegistry(topEventManager);
+        setTopEventManager(topEventManager);
     }
 
     /**
@@ -123,13 +135,19 @@ public class AsyncEventManager implements IEventManager {
         return eventManager;
     }
 
+    public IEventManager getTopEventManager() {
+        return fTopEventManager;
+    }
+
     /**
      * Creates and returns a new thread-local event manager.
      * 
      * @return a newly created thread-local event manager
      */
     protected EventManager newEventManager() {
-        return new EventManager(this);
+        IEventManager topEventManager = getTopEventManager();
+        EventManager localEventManager = new EventManager(topEventManager);
+        return localEventManager;
     }
 
     /**
@@ -165,5 +183,9 @@ public class AsyncEventManager implements IEventManager {
      */
     public void setListenerRegistry(IEventListenerRegistry listenerRegistry) {
         fListenerRegistry = listenerRegistry;
+    }
+
+    public void setTopEventManager(IEventManager eventManager) {
+        fTopEventManager = eventManager;
     }
 }

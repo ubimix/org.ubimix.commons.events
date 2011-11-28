@@ -73,9 +73,9 @@ public class CallBarrier {
         return (A) result[0];
     }
 
-    private Object fMutex = new Object();
+    private final Object fMutex = new Object();
 
-    private int fRequestCounter;
+    private volatile int fRequestCounter;
 
     /**
      * 
