@@ -11,6 +11,7 @@ import org.webreformatter.commons.events.IEventListenerInterceptor;
 import org.webreformatter.commons.events.IEventListenerRegistration;
 import org.webreformatter.commons.events.IEventListenerRegistry;
 import org.webreformatter.commons.events.IEventManager;
+import org.webreformatter.commons.events.IEventWithLifecycle;
 
 /**
  * This implementation of the {@link IEventManager} interface handles events in
@@ -26,8 +27,6 @@ public class AsyncEventManager implements IEventManager {
 
     private IEventListenerRegistry fListenerRegistry;
 
-    private IEventManager fTopEventManager = this;
-
     public AsyncEventManager() {
         this(Executors.newCachedThreadPool(), new EventListenerRegistry());
     }
@@ -41,16 +40,6 @@ public class AsyncEventManager implements IEventManager {
         IEventListenerRegistry listenerRegistry) {
         setExecutor(executor);
         setListenerRegistry(listenerRegistry);
-    }
-
-    /**
-     * @param executor
-     * @param listenerRegistry
-     */
-    public AsyncEventManager(Executor executor, IEventManager topEventManager) {
-        setExecutor(executor);
-        setListenerRegistry(topEventManager);
-        setTopEventManager(topEventManager);
     }
 
     /**
@@ -74,6 +63,9 @@ public class AsyncEventManager implements IEventManager {
      * @see org.webreformatter.commons.events.IEventManager#fireEvent(java.lang.Object)
      */
     public <E> void fireEvent(final E event) {
+        if (event instanceof IEventWithLifecycle) {
+            ((IEventWithLifecycle) event).onFire(this, null);
+        }
         fExecutor.execute(new Runnable() {
             public void run() {
                 IEventManager manager = getLocalEventManager(true);
@@ -89,6 +81,9 @@ public class AsyncEventManager implements IEventManager {
     public <E, L extends IEventListener<? super E>> void fireEvent(
         final E event,
         final L listener) {
+        if (event instanceof IEventWithLifecycle) {
+            ((IEventWithLifecycle) event).onFire(this, listener);
+        }
         fExecutor.execute(new Runnable() {
             public void run() {
                 IEventManager manager = getLocalEventManager(true);
@@ -135,18 +130,13 @@ public class AsyncEventManager implements IEventManager {
         return eventManager;
     }
 
-    public IEventManager getTopEventManager() {
-        return fTopEventManager;
-    }
-
     /**
      * Creates and returns a new thread-local event manager.
      * 
      * @return a newly created thread-local event manager
      */
     protected EventManager newEventManager() {
-        IEventManager topEventManager = getTopEventManager();
-        EventManager localEventManager = new EventManager(topEventManager);
+        EventManager localEventManager = new EventManager(fListenerRegistry);
         return localEventManager;
     }
 
@@ -185,7 +175,4 @@ public class AsyncEventManager implements IEventManager {
         fListenerRegistry = listenerRegistry;
     }
 
-    public void setTopEventManager(IEventManager eventManager) {
-        fTopEventManager = eventManager;
-    }
 }

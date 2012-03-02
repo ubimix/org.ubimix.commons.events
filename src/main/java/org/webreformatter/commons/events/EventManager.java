@@ -57,19 +57,12 @@ public class EventManager implements IEventManager {
 
     private IEventListenerRegistry fListenerRegistry;
 
-    private IEventManager fTopEventManager = this;
-
     public EventManager() {
         this(new EventListenerRegistry());
     }
 
     public EventManager(IEventListenerRegistry listenerRegistry) {
         fListenerRegistry = listenerRegistry;
-    }
-
-    public EventManager(IEventManager eventManager) {
-        fListenerRegistry = eventManager;
-        fTopEventManager = eventManager;
     }
 
     /**
@@ -155,6 +148,9 @@ public class EventManager implements IEventManager {
     public <E, L extends IEventListener<? super E>> void fireEvent(
         E event,
         L callback) {
+        if (event instanceof IEventWithLifecycle) {
+            ((IEventWithLifecycle) event).onFire(this, callback);
+        }
         EventNode node = newEventNode(event, callback);
         enqueueEvent(node);
         if (fDepth == 0) {
@@ -176,10 +172,6 @@ public class EventManager implements IEventManager {
         return fListenerRegistry.getListeners(eventType);
     }
 
-    public IEventManager getTopEventManager() {
-        return fTopEventManager;
-    }
-
     protected <E, L extends IEventListener<? super E>> EventNode newEventNode(
         E event,
         L callback) {
@@ -189,7 +181,7 @@ public class EventManager implements IEventManager {
     protected void onBegin(Object event, IEventListener<?> callback) {
         if (event instanceof IEventWithLifecycle) {
             IEventWithLifecycle e = (IEventWithLifecycle) event;
-            e.onHandleBegin(fTopEventManager, callback);
+            e.onHandleBegin(this, callback);
         }
     }
 
@@ -232,10 +224,6 @@ public class EventManager implements IEventManager {
      */
     public void removeListenerInterceptor(IEventListenerInterceptor interceptor) {
         fListenerRegistry.removeListenerInterceptor(interceptor);
-    }
-
-    public void setTopEventManager(IEventManager eventManager) {
-        fTopEventManager = eventManager;
     }
 
 }

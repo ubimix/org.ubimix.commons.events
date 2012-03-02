@@ -48,7 +48,7 @@ public class AsyncEventManagerTest extends TestCase {
             @Override
             protected void handleRequest(MyEvent event) {
                 String result = "Hello, " + event.getRequest() + "!";
-                event.setResponse(result);
+                event.reply(result);
             }
         });
 
@@ -175,7 +175,7 @@ public class AsyncEventManagerTest extends TestCase {
                     Thread.sleep(300);
                 } catch (InterruptedException e) {
                 }
-                event.setResponse(response);
+                event.reply(response);
             };
         });
         MyEvent event = new MyEvent("Smith");

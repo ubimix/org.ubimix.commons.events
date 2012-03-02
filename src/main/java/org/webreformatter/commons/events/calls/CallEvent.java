@@ -24,8 +24,8 @@ import org.webreformatter.commons.events.IEventManager;
  * This is an abstract super-class for all request/response events. The same
  * events is fired twice - the first time for the request and the second time -
  * for the response. The response call is fired automatically when the
- * {@link #setResponse(Object)} method. This class guarantees that all
- * registered listeners are called for the request stage (
+ * {@link #reply(Object)} method is called. This class guarantees that all
+ * registered listeners are notified for the request stage (
  * {@link CallEvent.STAGE#REQUEST}) and only after that for the response stage (
  * {@link CallEvent.STAGE#RESPONSE}). <br />
  * Example of usage:
@@ -225,6 +225,20 @@ public abstract class CallEvent<Q, A> extends EventWithLifecycle {
     }
 
     /**
+     * Replies to this call. This method sets the specified response value and
+     * tries re-fires this event in the "response" state using the original
+     * event manager. This event will be launched only when the "request" stage
+     * is finished
+     * 
+     * @param response the response to this call
+     */
+    public void reply(A response) {
+        setResponseValue(response);
+        fHasResponse = true;
+        tryToReply();
+    }
+
+    /**
      * This method is used to set a new request object.
      * 
      * @param request the request to set
@@ -234,14 +248,35 @@ public abstract class CallEvent<Q, A> extends EventWithLifecycle {
     }
 
     /**
-     * @param response the response to set
+     * Sets the specified response and fires this event in the "response" stage
+     * using the original event manager. This method is deprecated. Use the
+     * {@link #reply(Object)} method instead.
+     * 
+     * @param response the response to this call
+     * @deprecated Use the {@link #reply(Object)} method instead
+     * @see #reply(Object)
      */
+    @Deprecated
     public final void setResponse(A response) {
-        fResponse = response;
-        fHasResponse = true;
-        tryToReply();
+        reply(response);
     }
 
+    /**
+     * Sets a new response value. This method just changes the value of the
+     * {@link #fResponse} field but it does not try to reply to the request.
+     * 
+     * @param response a new value for the internal "response" field
+     */
+    public void setResponseValue(A response) {
+        fResponse = response;
+    }
+
+    /**
+     * This method tries to re-fire this event in the "response" state. The
+     * event is fired in the "response" stage only when: a) it was delivered to
+     * all listeners in the "request" stage and b) after somebody called the
+     * {@link #reply(Object)} method.
+     */
     @SuppressWarnings("unchecked")
     private void tryToReply() {
         if (fHasResponse && fStage == STAGE.REQUEST_END) {

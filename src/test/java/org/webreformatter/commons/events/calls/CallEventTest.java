@@ -7,8 +7,6 @@ import junit.framework.TestCase;
 
 import org.webreformatter.commons.events.EventManager;
 import org.webreformatter.commons.events.IEventManager;
-import org.webreformatter.commons.events.calls.CallEvent;
-import org.webreformatter.commons.events.calls.CallListener;
 
 /**
  * @author kotelnikov
@@ -75,7 +73,7 @@ public class CallEventTest extends TestCase {
 
         // A little bit later...
         Thread.sleep(200);
-        event.setResponse("World");
+        event.reply("World");
 
         // Now the counter should be incremented the second time - for the
         // response.

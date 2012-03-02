@@ -44,7 +44,7 @@ public class EventWithLifecycle implements IEventWithLifecycle {
     private Set<Throwable> fErrors;
 
     /**
-     * The event manager used to fire this event.
+     * The event manager used to initially fire this event.
      */
     private IEventManager fEventManager;
 
@@ -85,7 +85,7 @@ public class EventWithLifecycle implements IEventWithLifecycle {
     }
 
     /**
-     * Returns the event manager dispatching this event.
+     * Returns the event manager initially firing this event.
      * 
      * @return the event manager dispatching this event.
      */
@@ -118,14 +118,23 @@ public class EventWithLifecycle implements IEventWithLifecycle {
     }
 
     /**
+     * @see org.webreformatter.commons.events.IEventWithLifecycle#onFire(org.webreformatter.commons.events.IEventManager,
+     *      org.webreformatter.commons.events.IEventListener)
+     */
+    public void onFire(IEventManager eventManager, IEventListener<?> callback) {
+        if (fEventManager == null) {
+            fEventManager = eventManager;
+            fCallback = callback;
+        }
+    }
+
+    /**
      * @see org.webreformatter.commons.events.IEventWithLifecycle#onHandleBegin(org.webreformatter.commons.events.IEventManager,
      *      org.webreformatter.commons.events.IEventListener)
      */
     public void onHandleBegin(
         IEventManager eventManager,
         IEventListener<?> callback) {
-        fEventManager = eventManager;
-        fCallback = callback;
     }
 
     /**

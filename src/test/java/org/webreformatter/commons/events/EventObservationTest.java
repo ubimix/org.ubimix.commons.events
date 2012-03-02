@@ -3,11 +3,6 @@
  */
 package org.webreformatter.commons.events;
 
-import org.webreformatter.commons.events.EventManager;
-import org.webreformatter.commons.events.IEventListener;
-import org.webreformatter.commons.events.IEventManager;
-import org.webreformatter.commons.events.IEventWithLifecycle;
-
 import junit.framework.TestCase;
 
 /**
@@ -26,6 +21,11 @@ public class EventObservationTest extends TestCase {
             assertTrue(fBeginHandled);
             assertTrue(fEndHandled);
             assertEquals(errorCount, fErrorCounter);
+        }
+
+        public void onFire(
+            IEventManager eventManager,
+            IEventListener<?> callback) {
         }
 
         public void onHandleBegin(

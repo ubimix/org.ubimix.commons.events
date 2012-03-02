@@ -28,11 +28,28 @@ package org.webreformatter.commons.events;
 public interface IEventWithLifecycle {
 
     /**
-     * This method is called just before the event is dispatched to the
-     * listeners.
+     * This method is called when the event is fired by an event manager. This
+     * method is called every time when an event manager accepts the event by
+     * the {@link IEventManager#fireEvent(Object)} or
+     * {@link IEventManager#fireEvent(Object, IEventListener)} methods. So this
+     * method can be called multiple times, especially if the event is initially
+     * fired by a composite or by an asynchronous event manager.
+     * 
+     * @param manager the event manager used to fire the event.
+     * @param callback a callback associated with this event
+     * @see #onHandleBegin(IEventManager, IEventListener)
+     */
+    void onFire(IEventManager eventManager, IEventListener<?> callback);
+
+    /**
+     * This method is called just before the event is dispatched to registered
+     * listeners. The event manager in this method is the manager responsible
+     * for dispatching the event to the listeners and it can be different with
+     * the initial listener firing the event.
      * 
      * @param manager the event manager calling this method
      * @param callback a callback associated with this event
+     * @see #onFire(IEventManager, IEventListener)
      */
     void onHandleBegin(IEventManager eventManager, IEventListener<?> callback);
 

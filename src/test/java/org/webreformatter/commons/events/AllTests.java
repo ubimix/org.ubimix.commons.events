@@ -4,6 +4,7 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import org.webreformatter.commons.events.calls.CallEventTest;
+import org.webreformatter.commons.events.server.AsyncEventManagerTest;
 
 public class AllTests {
 
@@ -15,8 +16,8 @@ public class AllTests {
         suite.addTestSuite(EventManagerTest.class);
         suite.addTestSuite(EventObservationTest.class);
         suite.addTestSuite(CallEventTest.class);
+        suite.addTestSuite(AsyncEventManagerTest.class);
         // $JUnit-END$
         return suite;
     }
-
 }
