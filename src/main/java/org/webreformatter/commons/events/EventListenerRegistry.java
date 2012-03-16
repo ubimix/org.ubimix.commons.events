@@ -60,6 +60,7 @@ public class EventListenerRegistry implements IEventListenerRegistry {
             fInterceptors = new ArrayList<IEventListenerInterceptor>();
         }
         fInterceptors.add(interceptor);
+        interceptor.init(fMap);
     }
 
     /**
@@ -107,6 +108,7 @@ public class EventListenerRegistry implements IEventListenerRegistry {
         if (fInterceptors != null) {
             fInterceptors.remove(interceptor);
         }
+        interceptor.done();
     }
 
 }

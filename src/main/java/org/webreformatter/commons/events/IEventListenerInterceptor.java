@@ -1,5 +1,8 @@
 package org.webreformatter.commons.events;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Instances of this type are notified when listeners are added to or removed
  * from the listener registry.
@@ -11,6 +14,19 @@ package org.webreformatter.commons.events;
  * @author kotelnikov
  */
 public interface IEventListenerInterceptor {
+
+    /**
+     * This method is called when the interceptor is unregistered.
+     */
+    void done();
+
+    /**
+     * This method is called to notify newly registered event listener
+     * interceptor about already existing listeners.
+     * 
+     * @param listeners a map of listeners
+     */
+    void init(Map<Class<?>, List<IEventListener<?>>> listeners);
 
     /**
      * This method is called when a new listener is added to the registry

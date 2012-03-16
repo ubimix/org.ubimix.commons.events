@@ -41,13 +41,15 @@ public class EventListenerInterceptorTest extends TestCase {
 
         final IEventListener<?>[] result = { null };
         IEventManager manager = new EventManager();
-        manager.addListenerInterceptor(new IEventListenerInterceptor() {
+        manager.addListenerInterceptor(new EventListenerInterceptor() {
+            @Override
             public void onAddListener(
                 Class<?> eventType,
                 IEventListener<?> listener) {
                 result[0] = listener;
             }
 
+            @Override
             public void onRemoveListener(
                 Class<?> eventType,
                 IEventListener<?> listener) {
@@ -77,7 +79,7 @@ public class EventListenerInterceptorTest extends TestCase {
     public void testCommands() {
         IEventManager manager = new EventManager();
         final Set<String> listOfCommands = new HashSet<String>();
-        manager.addListenerInterceptor(new IEventListenerInterceptor() {
+        manager.addListenerInterceptor(new EventListenerInterceptor() {
             private String getCommandName(Class<? extends CommandLineEvent> type) {
                 String name = type.getName();
                 int idx = name.lastIndexOf("$");
@@ -86,6 +88,7 @@ public class EventListenerInterceptorTest extends TestCase {
                 return name;
             }
 
+            @Override
             public void onAddListener(
                 Class<?> eventType,
                 IEventListener<?> listener) {
@@ -98,6 +101,7 @@ public class EventListenerInterceptorTest extends TestCase {
                 }
             }
 
+            @Override
             public void onRemoveListener(
                 Class<?> eventType,
                 IEventListener<?> listener) {
