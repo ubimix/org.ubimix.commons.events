@@ -129,6 +129,7 @@ public class CallBarrier {
             fRequestCounter--;
             if (fRequestCounter <= 0) {
                 fMutex.notifyAll();
+                onUnlock();
             }
         }
     }
@@ -154,8 +155,27 @@ public class CallBarrier {
 
     private void incCounter() {
         synchronized (fMutex) {
+            if (fRequestCounter == 0) {
+                onLock();
+            }
             fRequestCounter++;
         }
+    }
+
+    /**
+     * This method is called to notify that this barrier was locked. This method
+     * could be overloaded in subclasses to define actions associated with the
+     * barrier locking.
+     */
+    protected void onLock() {
+    }
+
+    /**
+     * This method is called to notify that the barrier was unlocked. It can be
+     * overloaded in subclasses to define additional action associated with the
+     * barrier unlocking.
+     */
+    protected void onUnlock() {
     }
 
 }
