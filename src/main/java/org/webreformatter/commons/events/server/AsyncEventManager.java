@@ -2,6 +2,7 @@ package org.webreformatter.commons.events.server;
 
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.webreformatter.commons.events.EventListenerRegistry;
@@ -57,6 +58,15 @@ public class AsyncEventManager implements IEventManager {
      */
     public void addListenerInterceptor(IEventListenerInterceptor interceptor) {
         fListenerRegistry.addListenerInterceptor(interceptor);
+    }
+
+    /**
+     * Closes this event manager and shuts down the associated
+     */
+    public void close() {
+        if (fExecutor instanceof ExecutorService) {
+            ((ExecutorService) fExecutor).shutdown();
+        }
     }
 
     /**
