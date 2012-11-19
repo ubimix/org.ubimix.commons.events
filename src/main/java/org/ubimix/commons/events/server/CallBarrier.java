@@ -15,34 +15,33 @@ import org.ubimix.commons.events.calls.CallListener;
  * </p>
  * 
  * <pre>
- *      class MyEvent extends CallEvent<String, String> {
- *          public MyEvent(String request) {
- *              super(request);
- *          }
- *      }
- *      IEventManager manager = new AsyncEventManager();
- *      // IEventManager manager = new EventManager();
- *      manager.addListener(MyEvent.class, new CallListener<MyEvent>() {
- *          @Override
- *          protected void handleRequest(MyEvent event) {
- *              event.setResponse("Hello, " + event.getRequest() + "!");
- *          }
- *      });
- *      final List<String> list = Collections
- *          .synchronizedList(new ArrayList<String>());
- *      CallListener<MyEvent> listener = new CallListener<MyEvent>() {
- *          @Override
- *          protected void handleResponse(MyEvent event) {
- *              System.out.println(event.getResponse());
- *              list.add(event.getRequest());
- *          };
- *      };
- *      CallBarrier handler = new CallBarrier(manager);
- *      handler.fireEvent(manager, new MyEvent("John"), listener);
- *      handler.fireEvent(manager, new MyEvent("Bill"), listener);
- *      handler.fireEvent(manager, new MyEvent("Mike"), listener);
- *      handler.await();
- *      System.out.println("The following people were called: " + list);
+ * class MyEvent extends CallEvent&lt;String, String&gt; {
+ *     public MyEvent(String request) {
+ *         super(request);
+ *     }
+ * }
+ * IEventManager manager = new AsyncEventManager();
+ * // IEventManager manager = new EventManager();
+ * manager.addListener(MyEvent.class, new CallListener&lt;MyEvent&gt;() {
+ *     &#064;Override
+ *     protected void handleRequest(MyEvent event) {
+ *         event.setResponse(&quot;Hello, &quot; + event.getRequest() + &quot;!&quot;);
+ *     }
+ * });
+ * final List&lt;String&gt; list = Collections.synchronizedList(new ArrayList&lt;String&gt;());
+ * CallListener&lt;MyEvent&gt; listener = new CallListener&lt;MyEvent&gt;() {
+ *     &#064;Override
+ *     protected void handleResponse(MyEvent event) {
+ *         System.out.println(event.getResponse());
+ *         list.add(event.getRequest());
+ *     };
+ * };
+ * CallBarrier handler = new CallBarrier(manager);
+ * handler.fireEvent(manager, new MyEvent(&quot;John&quot;), listener);
+ * handler.fireEvent(manager, new MyEvent(&quot;Bill&quot;), listener);
+ * handler.fireEvent(manager, new MyEvent(&quot;Mike&quot;), listener);
+ * handler.await();
+ * System.out.println(&quot;The following people were called: &quot; + list);
  * </pre>
  * 
  * @author kotelnikov
@@ -91,8 +90,9 @@ public class CallBarrier {
 
     public <E, L extends IEventListener<? super E>> IEventListener<E> add(
         final L listener) {
-        incCounter();
+        lock();
         return new IEventListener<E>() {
+            @Override
             public void handleEvent(E event) {
                 CallEvent<?, ?> e = (CallEvent<?, ?>) event;
                 boolean response = e.isResponseStage();
@@ -102,7 +102,7 @@ public class CallBarrier {
                     }
                 } finally {
                     if (response) {
-                        decCounter();
+                        unlock();
                     }
                 }
             }
@@ -120,16 +120,6 @@ public class CallBarrier {
                 } catch (InterruptedException e) {
                     break;
                 }
-            }
-        }
-    }
-
-    private void decCounter() {
-        synchronized (fMutex) {
-            fRequestCounter--;
-            if (fRequestCounter <= 0) {
-                fMutex.notifyAll();
-                onUnlock();
             }
         }
     }
@@ -153,7 +143,7 @@ public class CallBarrier {
         return 100;
     }
 
-    private void incCounter() {
+    public void lock() {
         synchronized (fMutex) {
             if (fRequestCounter == 0) {
                 onLock();
@@ -176,6 +166,16 @@ public class CallBarrier {
      * barrier unlocking.
      */
     protected void onUnlock() {
+    }
+
+    public void unlock() {
+        synchronized (fMutex) {
+            fRequestCounter--;
+            if (fRequestCounter <= 0) {
+                onUnlock();
+                fMutex.notifyAll();
+            }
+        }
     }
 
 }
